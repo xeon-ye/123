@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body {
+            font-family: Monospace;
+            background-color: #f0f0f0;
+            margin: 0px;
+            overflow: hidden;
+        }
+    </style>
+    <script src="../build/three.js"></script>
+
+    <script src="js/controls/OrbitControls.js"></script>
+    <script src="js/WebGL.js"></script>
+
+</head>
+<body>
+<script>
+
+    if ( WEBGL.isWebGLAvailable() === false ) {
+        document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+    }
+    var camera, controls, scene, renderer;
+    init();
+    //render(); // remove when using next line for animation loop (requestAnimationFrame)
+    animate();
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0xcccccc );
+        scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight,0.1, 2000 );
+        camera.position.set( 0, 100, 250 );
+
+        // controls
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 100;
+        controls.maxDistance = 500;
+        controls.maxPolarAngle = Math.PI ;
+
+        // lights
+        var light = new THREE.DirectionalLight( 0xffffff );
+        light.position.set( 1, 1, 1 );
+        scene.add( light );
+        var light = new THREE.DirectionalLight( 0x002288 );
+        light.position.set( - 1, - 1, - 1 );
+        scene.add( light );
+        var light = new THREE.AmbientLight( 0x222222 );
+        scene.add( light );
+
+
+        var gridHelper = new THREE.GridHelper( 400, 40, 0x808080, 0x808080 );
+       /* gridHelper.position.y = - 150;
+        gridHelper.position.x = - 150;*/
+        scene.add( gridHelper );
+
+
+        //立方体
+        var cubeGeometry = new THREE.Geometry();
+        //创建立方体的顶点
+        var vertices = [
+            new THREE.Vector3(100, 70, 5), //v0
+            new THREE.Vector3(-100, 70, 5), //v1
+            new THREE.Vector3(-100, 0, 5), //v2 下
+            new THREE.Vector3(100, 0, 5), //v3下
+            new THREE.Vector3(100, 0, -5), //v4下
+            new THREE.Vector3(100, 70, -5), //v5
+            new THREE.Vector3(-100, 70, -5), //v6
+            new THREE.Vector3(-100, 0, -5) //v7下
+        ];
+        cubeGeometry.vertices = vertices;  //设置立方体的各个坐标点
+        //创建立方的面，各个面的排列顺序
+        var faces=[
+            new THREE.Face3(0,1,2),
+            new THREE.Face3(0,2,3),
+            new THREE.Face3(0,3,4),
+            new THREE.Face3(0,4,5),
+            new THREE.Face3(1,6,7),
+            new THREE.Face3(1,7,2),
+            new THREE.Face3(6,5,4),
+            new THREE.Face3(6,4,7),
+            new THREE.Face3(5,6,1),
+            new THREE.Face3(5,1,0),
+            new THREE.Face3(3,2,7),
+            new THREE.Face3(3,7,4)
+        ];
+        cubeGeometry.faces = faces;
+        //给立方体设置贴图
+        var materials = [];  //创建一个贴图数组
+        //设置贴图数组
+
+        //给立方体设置贴图
+        var materials = [];  //创建一个贴图数组
+        //设置贴图数组
+        for(var i = 0;i < cubeGeometry.faces.length/2;i++){
+            if(i === 0){
+                materials[i] = new THREE.MeshBasicMaterial({
+                    map:THREE.ImageUtils.loadTexture('./images/353835d0ac9475432d82b650c30af54.png',
+                        {},function(){
+                            renderer.render(scene,camera);
+                        })
+                })
+            }else{
+                materials[i] = new THREE.MeshBasicMaterial({
+                    color: 0xDCDCDC
+                })
+            }
+        }
+        //记录每个面的id，将纹理坐标和faceid间接关联，否则纹理图片始终都是第一张的图片
+        var faceId = 0;
+        var uv = [new THREE.Vector2(0,0),new THREE.Vector2(1,0),new THREE.Vector2(1,1),new THREE.Vector2(0,1)];
+        //设置纹理坐标
+        for(var m=0;m<cubeGeometry.faces.length;m+=2){
+            cubeGeometry.faces[m].materialIndex = faceId;
+            cubeGeometry.faces[m+1].materialIndex = faceId;
+            cubeGeometry.faceVertexUvs[0][m] = [uv[2],uv[3],uv[0]];
+            cubeGeometry.faceVertexUvs[0][m+1] = [uv[2],uv[0],uv[1]];
+            faceId++;
+        }
+        var cubeMaterial = new THREE.MeshFaceMaterial(materials);
+        cube = new THREE.Mesh(cubeGeometry,cubeMaterial);
+        scene.add(cube);
+        //
+        window.addEventListener("mousedown", onPointerDown, false);
+        window.addEventListener( 'resize', onWindowResize, false );
+    }
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function onPointerDown() {
+        var down_mouse = new THREE.Vector2();
+        var rect = renderer.domElement.getBoundingClientRect();
+        down_mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        down_mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        var vector = new THREE.Vector3(down_mouse.x, down_mouse.y).unproject(camera);//, 0.9
+        var _raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        var wall = scene.getObjectByName('wall');
+        var intersect_w = _raycaster.intersectObjects(scene.children);
+        console.log("获取面",intersect_w);
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+        render();
+    }
+    function render() {
+        renderer.render( scene, camera );
+    }
+</script>
+</body>
+</html>
