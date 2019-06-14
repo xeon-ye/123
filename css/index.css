@@ -32,3 +32,7 @@
   .el-container:nth-child(7) .el-aside {
     line-height: 320px;
   }
+a:link {text-decoration:none;}
+a:visited {text-decoration:none;}
+a:hover {text-decoration:underline;}
+a:active {text-decoration:underline;}
