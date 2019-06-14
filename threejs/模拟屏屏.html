@@ -19,11 +19,29 @@
 </head>
 <body>
 <script>
+    var camera, controls, scene, renderer, fov;
+
+    // if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
+    //     //TODO
+    //     fov = 60;
+    // }else{
+    //     fov = 40;
+    // }
+
+    var isMobile = /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
+    if (isMobile) {
+        // 当前网页在手机端打开
+        fov = 60;
+    } else {
+        // 当前网页在PC端打开
+        fov = 40;
+    }
+
 
     if ( WEBGL.isWebGLAvailable() === false ) {
         document.body.appendChild( WEBGL.getWebGLErrorMessage() );
     }
-    var camera, controls, scene, renderer;
+
     init();
     //render(); // remove when using next line for animation loop (requestAnimationFrame)
     animate();
@@ -36,7 +54,7 @@
         renderer.setSize( window.innerWidth, window.innerHeight );
         document.body.appendChild( renderer.domElement );
 
-        camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight,0.1, 2000 );
+        camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight,0.1, 2000 );
         camera.position.set( 0, 100, 250 );
 
         // controls
@@ -130,15 +148,30 @@
         }
         var cubeMaterial = new THREE.MeshFaceMaterial(materials);
         cube = new THREE.Mesh(cubeGeometry,cubeMaterial);
+        // cube.rotation.x = 0.8726646259971648;
+        // cube.rotation.y = 0.5235987755982988;
+        // cube.rotation.z = 1.3089969389957472;
         scene.add(cube);
         //
         window.addEventListener("mousedown", onPointerDown, false);
         window.addEventListener( 'resize', onWindowResize, false );
+        window.addEventListener("load", rotate, false);
+        window.addEventListener("onorientationchange" in window ? "orientationchange" : "resize", rotate, false);
+
     }
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+    function rotate() {
+
+        if (window.orientation == 180 || window.orientation == 0) {
+            alert('竖屏')
+        }
+        if (window.orientation == 90 || window.orientation == -90) {
+            alert('横屏')
+        }
     }
 
     function onPointerDown() {

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<video autoplay></video>
+<script>
+    navigator.getUserMedia  = navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia;
+    var video = document.querySelector('video');
+    var constraints = {
+        video: true
+    }
+    function successCallback(stream) {
+// 此处利用该 window.URL 对象的 createObjectURL 方法将 blob 转为 url。
+        if (window.URL) {
+            video.src = window.URL.createObjectURL(stream); // 用来创建 video 可以播放的 src
+        } else {
+            video.src = stream;
+        }
+    }
+    function errorCallback(error) {
+        console.log('navigator.getUserMedia error: ', error);
+    }
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia({video: true}, successCallback, errorCallback);
+    } else {
+        console.log('getUserMedia() is not supported in your browser')
+        video.src = 'somevideo.webm'; // fallback.
+    }
+</script>
+</body>
+</html>
