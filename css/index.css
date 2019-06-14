@@ -3,6 +3,9 @@ body{
   font-size: 60px;
 }
 @media(max-width:540px){ html { font-size:83px; } }
+@media(max-width:360px){ html { font-size:83px; } }
+@media(max-width:240px){ html { font-size:83px; } }
+@media(max-width:540px){ html { font-size:83px; } }
 .el-header, .el-footer {
     background-color: #B3C0D1;
     color: #333;
