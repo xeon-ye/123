@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../build/three.js"></script>
+    <style>
+        video{
+            position: relative;
+            background-color: antiquewhite;
+            top: -150px;
+            z-index: 2;
+        }
+        #container{
+            position: relative;
+            width: 300px;
+            height: 150px;
+            top: 0px;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div id="container"></div>
+</div>
+<video autoplay></video>
+<script>
+    navigator.getUserMedia  = navigator.getUserMedia ||
+        navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia ||
+        navigator.msGetUserMedia;
+    var video = document.querySelector('video');
+    var constraints = {
+        video: true
+    }
+    function successCallback(stream) {
+// 此处利用该 window.URL 对象的 createObjectURL 方法将 blob 转为 url。
+        if (window.URL) {
+            video.src = window.URL.createObjectURL(stream); // 用来创建 video 可以播放的 src
+        } else {
+            video.src = stream;
+        }
+    }
+    function errorCallback(error) {
+        console.log('navigator.getUserMedia error: ', error);
+    }
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia({video: true}, successCallback, errorCallback);
+    } else {
+        console.log('getUserMedia() is not supported in your browser')
+        video.src = 'somevideo.webm'; // fallback.
+    }
+    var camera,scene,mesh,renderer
+    init();
+    animate();
+    function init(){
+        let container=document.getElementById('container')
+        camera=new THREE.PerspectiveCamera(70,container.clientWidth/container.clientHeight,0.01,10)
+
+        camera.position.z=0.6
+        scene=new THREE.Scene()
+        let geometry=new THREE.BoxGeometry(0.2,0.2,0.2)
+        let material=new THREE.MeshNormalMaterial()
+        mesh=new THREE.Mesh(geometry,material)
+        scene.add(mesh)
+
+        renderer=new THREE.WebGLRenderer({antialias:true,alpha:true})
+        renderer.setSize(container.clientWidth,container.clientHeight)
+        container.appendChild(renderer.domElement)
+    }
+    function animate(){
+        requestAnimationFrame(animate)
+        mesh.rotation.x+=0.09
+        mesh.rotation.y+=0.1
+        renderer.render(scene,camera)
+    }
+</script>
+</body>
+</html>
